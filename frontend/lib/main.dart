@@ -1,6 +1,8 @@
 import 'package:discover/layout/home_layout.dart';
+import 'package:discover/models/album.dart';
 import 'package:discover/utils/colors.dart';
 import 'package:discover/utils/theme.dart';
+import 'package:discover/views/albums/album_page.dart';
 import 'package:discover/views/auth/register_user.dart';
 import 'package:discover/views/home/home_page.dart';
 import 'package:discover/views/home/search_page.dart';
@@ -49,9 +51,18 @@ class MyApp extends StatelessWidget {
       themeMode: ThemeMode.light,
       initialRoute: "/",
       getPages: [
-        GetPage(name: "/", page: () =>  const HomeLayout(route: "/",)),
-        GetPage(name: "/search", page: () =>  const HomeLayout(route: "/search",)),
-        GetPage(name: "/test", page: () =>  const TestPage()),
+        GetPage(
+            name: "/",
+            page: () => const HomeLayout(
+                  route: "/",
+                )),
+        GetPage(
+            name: "/search",
+            page: () => const HomeLayout(
+                  route: "/search",
+                )),
+        GetPage(name: "/test", page: () => const TestPage()),
+        GetPage(name: "/album/:id", page: () => const AlbumPage())
       ],
     );
   }
