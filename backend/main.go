@@ -4,7 +4,11 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"net/http"
 	"os"
+	"os/signal"
+	"syscall"
+	"time"
 
 	"discover.com/controllers"
 	utils "discover.com/db"
@@ -34,7 +38,7 @@ func main() {
 	fmt.Println("Database connected")
 
 	defer func() {
-		fmt.Println("Connection closed")
+		fmt.Println("Db disconnected!")
 		conn.Close()
 	}()
 
@@ -62,7 +66,27 @@ func main() {
 	router.POST("/albums", func(ctx *gin.Context) {
 		controllers.PostAlbum(ctx, &dependencies)
 	})
+	srv := http.Server{
+		Addr:    ":3000",
+		Handler: router,
+	}
 
-	router.Run("localhost:3000")
+	go func() {
+		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			log.Fatalln("Server did not start", err.Error())
+		}
+	}()
+
+	quit := make(chan os.Signal, 1)
+	signal.Notify(quit, os.Interrupt, syscall.SIGTERM)
+	<-quit
+
+	fmt.Println("Shuttign down the server")
+	c, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer func() {
+		cancel()
+		fmt.Println("Server closed!")
+	}()
+	srv.Shutdown(c)
 
 }
