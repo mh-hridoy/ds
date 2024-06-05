@@ -5,7 +5,7 @@ import (
 	"net/http"
 	"strconv"
 
-	"discover.com/deps"
+	utils "discover.com/db"
 	"discover.com/structs"
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator/v10"
@@ -23,9 +23,13 @@ func FormatValidationError(err error) ErrorResponse {
 	return ErrorResponse{Errors: errors}
 }
 
-func GetAllAlbums(c *gin.Context, d *deps.Dependencies) {
+func GetAllAlbums(c *gin.Context, d *utils.DBConnect) {
 	var allAlbums []structs.Album
 	rows, e := d.DB.Query(c.Request.Context(), "SELECT * from album")
+	if e != nil {
+		c.IndentedJSON(http.StatusBadRequest, e.Error())
+		return
+	}
 
 	for rows.Next() {
 		var album structs.Album
@@ -39,16 +43,11 @@ func GetAllAlbums(c *gin.Context, d *deps.Dependencies) {
 		allAlbums = append(allAlbums, album)
 	}
 
-	if e != nil {
-		c.IndentedJSON(http.StatusBadRequest, e)
-		return
-	}
-
 	c.IndentedJSON(http.StatusOK, allAlbums)
 
 }
 
-func GetSingleAlbum(c *gin.Context, d *deps.Dependencies) {
+func GetSingleAlbum(c *gin.Context, d *utils.DBConnect) {
 	id := c.Param("id")
 	intId, err := strconv.Atoi(id)
 
@@ -67,7 +66,7 @@ func GetSingleAlbum(c *gin.Context, d *deps.Dependencies) {
 	c.IndentedJSON(http.StatusOK, album)
 }
 
-func UpdateAlbum(c *gin.Context, d *deps.Dependencies) {
+func UpdateAlbum(c *gin.Context, d *utils.DBConnect) {
 	paramId := c.Param("id")
 	id, err := strconv.Atoi(paramId)
 
@@ -111,7 +110,7 @@ func UpdateAlbum(c *gin.Context, d *deps.Dependencies) {
 
 }
 
-func DeleteAlbum(c *gin.Context, d *deps.Dependencies) {
+func DeleteAlbum(c *gin.Context, d *utils.DBConnect) {
 	paramId := c.Param("id")
 	id, err := strconv.Atoi(paramId)
 
@@ -137,7 +136,7 @@ func DeleteAlbum(c *gin.Context, d *deps.Dependencies) {
 
 }
 
-func PostAlbum(c *gin.Context, d *deps.Dependencies) {
+func PostAlbum(c *gin.Context, d *utils.DBConnect) {
 	var newAlbum structs.Album
 
 	err := c.ShouldBindJSON(&newAlbum)

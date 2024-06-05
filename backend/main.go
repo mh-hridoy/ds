@@ -7,10 +7,12 @@ import (
 	"os"
 
 	"discover.com/controllers"
-	"discover.com/deps"
+	utils "discover.com/db"
 	"github.com/gin-gonic/gin"
-	"github.com/jackc/pgx/v5"
+	_ "github.com/golang-migrate/migrate/v4/source/file"
+	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/joho/godotenv"
+	_ "github.com/lib/pq"
 )
 
 func main() {
@@ -19,26 +21,29 @@ func main() {
 	if err != nil {
 		log.Fatalf("Error loading .env file: %v", err)
 	}
-
 	// Get the database URL from the environment variable
 	databaseURL := os.Getenv("DATABASE_URL")
 	if databaseURL == "" {
 		log.Fatal("DATABASE_URL is not set")
 	}
-	// Connect to the database
-	conn, err := pgx.Connect(context.Background(), databaseURL)
+	// Create a pool and connect to db
+	conn, err := pgxpool.New(context.Background(), databaseURL)
 	if err != nil {
 		log.Fatalf("Failed to connect to the database: %v\n", err)
 	}
 	fmt.Println("Database connected")
+
 	defer func() {
 		fmt.Println("Connection closed")
-		conn.Close(context.Background())
+		conn.Close()
 	}()
 
-	dependencies := deps.Dependencies{
+	dependencies := utils.DBConnect{
 		DB: conn,
 	}
+
+	// run migration
+	utils.RunMigrations(conn)
 
 	router := gin.Default()
 
