@@ -43,14 +43,30 @@ func RunMigrations(pool *pgxpool.Pool) {
 		fmt.Println("Error creating migration instance", er.Error())
 		return
 	}
+	// get the previous version
+	prev, _, pe := m.Version()
+	if pe != nil && pe != migrate.ErrNilVersion {
+		fmt.Println("There's no previous migration version available!", pe.Error())
+	}
+
 	err := m.Up()
 
 	if err != nil && err != migrate.ErrNoChange {
 		fmt.Println("Error migrating db", err.Error())
+		// Rollback to prev version
+		err := m.Force(int(prev))
+		// err := m.Steps(1)
+		if err != nil {
+			fmt.Println("Error rolling back migration:", err.Error())
+			return
+		}
+		fmt.Println("Rolled back to previous migration version:", prev)
+		return
 	}
 
 	if err == migrate.ErrNoChange {
 		fmt.Println("No changes detected in migrations dir!")
+		return
 	}
 
 	if err == nil {
