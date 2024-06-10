@@ -10,4 +10,7 @@ run:
 dev:
 	gow run .
 
-.PHONY: migrate run dev
+proto:
+	protoc --proto_path=../grpc/ --go_out=./grpc --go_opt=paths=source_relative --go-grpc_out=./grpc --go-grpc_opt=paths=source_relative ../grpc/album.proto
+
+.PHONY: migrate run dev proto

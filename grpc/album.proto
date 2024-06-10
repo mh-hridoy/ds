@@ -1,0 +1,31 @@
+syntax = "proto3";
+
+package album;
+option go_package = "devcoded.com/album";
+service AlbumServices {
+  rpc GetAllAlbum (AlbumEmptyRequest) returns (GetAllAlbumResponse) {};
+  rpc GetSingleAlbumWithId (AlbumWithIdRequest) returns (Album) {};
+  rpc PostSingleAlbum (Album) returns (Album) {};
+  rpc UpdateSingleAlbum (Album) returns (Album) {};
+  rpc DeleteSingleAlbumWithId (AlbumWithIdRequest) returns (AlbumDeleteInfo) {};
+}
+
+message Album {
+  int32 id = 1;
+  string title = 2;
+  string artist = 3;
+  float price = 4;
+}
+
+message AlbumWithIdRequest {
+int32 id = 1;
+}
+message AlbumEmptyRequest{}
+
+message GetAllAlbumResponse{
+  repeated Album albums = 1;
+}
+
+message AlbumDeleteInfo {
+  string message = 1;
+}

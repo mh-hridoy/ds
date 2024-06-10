@@ -2,6 +2,8 @@ package utils
 
 import (
 	"fmt"
+	"log"
+	"os"
 	"path/filepath"
 
 	"github.com/golang-migrate/migrate/v4"
@@ -61,6 +63,8 @@ func RunMigrations(pool *pgxpool.Pool) {
 			return
 		}
 		fmt.Println("Rolled back to previous migration version:", prev)
+		log.Fatalln("Please fix the migration file before proceed!")
+		os.Exit(1)
 		return
 	}
 

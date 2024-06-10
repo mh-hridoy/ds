@@ -1,6 +1,8 @@
 import 'package:discover/views/home/home_page.dart';
 import 'package:discover/views/home/search_page.dart';
 import 'package:flutter/material.dart';
+import 'package:grpc/grpc.dart';
+import 'package:discover/grpc/album.pbgrpc.dart';
 
 class HomeLayout extends StatefulWidget {
   final String route;
@@ -11,9 +13,32 @@ class HomeLayout extends StatefulWidget {
 }
 
 class HomeLayoutState extends State<HomeLayout> {
+  late ClientChannel connection;
+  late AlbumServicesClient client;
+  
   int currentIndex = 0;
   bool canPop = false;
   final PageController pageController = PageController();
+
+  @override
+  void initState() {
+    super.initState();
+    connection = ClientChannel("10.0.2.2", port: 50051, options: const ChannelOptions(credentials: ChannelCredentials.insecure()));
+    client = AlbumServicesClient(connection);
+ 
+  }
+  Future<void> getAllAlbums () async {
+    try {
+      final response = await client.getAllAlbum(AlbumEmptyRequest());
+    } catch (e) {
+      print("Error fetching data: $e");
+    }
+  }
+
+Future<void> postASingleAlbum () async {
+  await client.postSingleAlbum(Album(title: "calling from flutetr", artist: "Artist from flutter", price: 10.00));
+}
+
   
   @override
   Widget build(BuildContext context) {
@@ -35,7 +60,9 @@ class HomeLayoutState extends State<HomeLayout> {
         child: Scaffold(
           appBar: AppBar(
             title: const Text("Discover"),
-            leading: const SizedBox(),
+            leading: IconButton(icon: const Icon(Icons.menu), onPressed: () async {
+             await postASingleAlbum();
+            },),
           ),
           body: PageView(
             controller: pageController,
